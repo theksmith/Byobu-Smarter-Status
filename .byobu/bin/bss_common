@@ -1,0 +1,98 @@
+#!/bin/sh -e
+#
+# bss_common: functionality common to all bss modules
+#
+# Copyright (C) 2013 Kristoffer Smith
+#
+# Authors: Kristoffer Smith <http://theksmith.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+bss_color() {
+	case "$1" in
+		--)
+			color $BSS_SEPARATOR1_COL_BG $BSS_SEPARATOR1_COL_FG
+			printf "$BSS_SEPARATOR1"
+			color $BYOBU_DARK $BYOBU_LIGHT
+			;;
+		static)
+	       		if [ "$BSS_COL_INVERT_STATIC" = "1" ]; then
+				color k $BSS_COL_STATIC
+			else
+				color $BSS_COL_STATIC k
+			fi
+			;;
+		ok)
+	       		if [ "$BSS_COL_INVERT_DYNAMIC" = "1" ]; then
+				color k $BSS_COL_DYNAMIC
+			else
+				color $BSS_COL_DYNAMIC k
+			fi
+			;;
+		notice)
+	       		if [ "$BSS_COL_INVERT_DYNAMIC_ALERTS" = "1" ]; then
+				color k $BSS_COL_DYNAMIC_NOTICE
+			else
+				color $BSS_COL_DYNAMIC_NOTICE k
+			fi
+			;;
+		warn)
+	       		if [ "$BSS_COL_INVERT_DYNAMIC_ALERTS" = "1" ]; then
+				color k $BSS_COL_DYNAMIC_WARN
+			else
+				color $BSS_COL_DYNAMIC_WARN k
+			fi
+	       		;;
+		*)
+	       		color "$@"
+			;;
+	esac
+}
+
+
+#output color codes based on if test value is higher than the notice or warning levels
+#params: $1 = test value, $2 = notice level (decimal), $3 = warning level (decimal)
+bss_color_alerth() {
+	if [ $(echo "" | awk "{if($1 >= $3){print 1}}") ]; then
+		bss_color warn
+	elif [ $(echo "" | awk "{if($1 >= $2){print 1}}") ]; then
+		bss_color notice
+	else
+		bss_color ok
+	fi
+}
+
+
+#output color codes based on if test value is lower than the notice or warning levels
+bss_color_alertl() {
+	#not yet implemented
+	return 0
+}
+
+
+#get total processing units (CPUs * cores)
+bss_cpu_count() {
+	local units
+
+	#try way #1 to get total
+	units=$(cat /proc/cpuinfo | egrep "core id|physical id" | tr -d "\n" | sed s/physical/\\nphysical/g | grep -v ^$ | sort | uniq | wc -l)
+
+	if [ -z "$units" -o "$units" -lt 1 ]; then
+			#use way #2 (more likely for VMs)
+		units=$(grep -ci "^processor" /proc/cpuinfo)
+	fi
+
+	[ -n "$units" ] || return;
+	printf "$units"
+}

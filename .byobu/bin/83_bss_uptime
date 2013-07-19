@@ -1,0 +1,61 @@
+#!/bin/sh -e
+#
+# bss_uptime: bss module for system uptime
+#
+# Copyright (C) 2013 Kristoffer Smith
+#
+# Authors: Kristoffer Smith <http://theksmith.com>
+#
+# This progUPTIME is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This progUPTIME is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this progUPTIME.  If not, see <http://www.gnu.org/licenses/>.
+
+
+. "$BYOBU_CONFIG_DIR/bin/bss_config"
+. "$BYOBU_CONFIG_DIR/bin/bss_common"
+
+__bss_uptime() {
+	local cmdout d h m
+
+	[ -n "$BSS_UPTIME_PREFIX" ] || BSS_UPTIME_PREFIX="UP$BSS_SEPARATOR0"
+	[ "$BSS_UPTIME_PREFIX" = "0" ] && BSS_UPTIME_PREFIX=""
+
+	[ -n "$BSS_UPTIME_SIMPLE" ] || BSS_UPTIME_SIMPLE=1
+	[ -n "$BSS_UPTIME_RESOLUTION" ] || BSS_UPTIME_RESOLUTION="m"
+
+	cmdout=$(uptime | awk '{gsub(".*up ", "", $0); gsub(" days*,", "", $0); gsub(":", " ", $0); gsub(",.*", "", $0); if (NF==1) {d=0;h=0;m=$1} else if (NF==2) {d=0;h=$1;m=$2} else {d=$1;h=$2;m=$3}; printf "%i %i %i\n", d, h, m}')
+	[ -n "$cmdout" ] || return;
+
+	d=$(echo "$cmdout" | awk '{print $1}')
+	h=$(echo "$cmdout" | awk '{print $2}')
+	m=$(echo "$cmdout" | awk '{print $3}')
+
+	bss_color static
+	printf "$BSS_UPTIME_PREFIX"
+
+	if [ "$BSS_UPTIME_SIMPLE" = "1" ]; then
+		printf "$d:$h:$m"
+	else
+		if [ "$d" != "0" ]; then
+			printf "%sd" "$d"
+			[ "$BSS_UPTIME_RESOLUTION" != "d" -a "$h" != "0" -a "$m" != "0" ] && printf "$BSS_SEPARATOR0"
+		fi
+		if [ "$BSS_UPTIME_RESOLUTION" != "d" -a "$h" != "0" ]; then
+			printf "%sh" "$h"
+			[ "$BSS_UPTIME_RESOLUTION" != "h" -a "$m" != "0" ] && printf "$BSS_SEPARATOR0"
+		fi
+		[ "$BSS_UPTIME_RESOLUTION" = "m" -a "$m" != "0" ] && printf "%sm" "$m"
+	fi
+
+	[ "$BSS_LAST" = "uptime" ] || bss_color --
+}
+
+__bss_uptime

@@ -1,0 +1,177 @@
+#!/bin/sh -e
+#
+# bss_config: settings for bss modules
+#
+# Copyright (C) 2013 Kristoffer Smith
+#
+# Authors: Kristoffer Smith <http://theksmith.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+#------ Settings common to all bss modules ------#
+#
+# TODO: document the color options
+
+
+# Dyanmic modules are those with color-based alerts.
+
+BSS_COL_DYNAMIC=g
+BSS_COL_INVERT_DYNAMIC=0
+
+BSS_COL_DYNAMIC_NOTICE=y
+BSS_COL_DYNAMIC_WARN=r
+BSS_COL_INVERT_DYNAMIC_ALERTS=0
+
+
+# Static modules do not have color alerts.
+
+BSS_COL_STATIC=c
+BSS_COL_INVERT_STATIC=0
+
+
+# Separator 0 is within a module, 1 is between modules.
+
+BSS_SEPARATOR0=" "
+
+BSS_SEPARATOR1=" "
+BSS_SEPARATOR1_COL_BG=k
+BSS_SEPARATOR1_COL_FG=w
+
+
+# Specify which module is on the far right to remove the final separator
+
+BSS_LAST="clock"
+
+
+
+#------ Optional settings for individual bss module ------#
+#
+# Values shown below are the module defaults, uncoment to override.
+#
+# Some modules have multiple options. Their BSS_(MODULE)_SHOW_(OPTION)
+# values determine if each option is displayed: 1=yes, 0=no
+#
+# Dynamic modules use the BSS_COL_OK, BSS_COL_NOTICE and BSS_COL_WARN colors
+# defined above to indicate when the system reaches a value greater than
+# or equal to their BSS_(MODULE)_NOTICE or BSS_(MODULE)_WARN values.
+#
+# Static modules (those without color based alerts) display using the
+# BSS_COL_STATIC color defined above
+#
+# Set BSS_(MODULE)_PREFIX=0 to clear a module's default prefix.
+
+
+# The Clock module is static. Use standard date format strings
+# to control the output (see: man date).
+
+#BSS_CLOCK_FORMAT="%Y-%m-%d$BSS_SEPARATOR0%H:%M"
+
+
+# The CPU module is static.
+
+#BSS_CPU_SHOW_COUNT=1
+#BSS_CPU_SHOW_FREQ=1
+
+
+# The Uptime module is static. Valid values for BSS_UPTIME_RESOLUTION are
+# "d", "h", or "m" (only applicable if BSS_UPTIME_SIMPLE=0).
+
+#BSS_UPTIME_PREFIX="UP$BSS_SEPARATOR0"
+#BSS_UPTIME_SIMPLE=1
+#BSS_UPTIME_RESOLUTION="m"
+
+
+# The RAM module alert levels are percentage used.
+
+#BSS_RAM_PREFIX="RAM$BSS_SEPARATOR0"
+#BSS_RAM_SHOW_TOTAL=1
+#BSS_RAM_NOTICE=75
+#BSS_RAM_WARN=90
+
+
+# The Swap module alert levels are percentage used.
+
+#BSS_SWAP_PREFIX="SWP$BSS_SEPARATOR0"
+#BSS_SWAP_SHOW_TOTAL=1
+#BSS_SWAP_NOTICE=50
+#BSS_SWAP_WARN=75
+
+
+# The Disk module alert levels are percentage used.
+
+#BSS_DISK_PREFIX="DSK$BSS_SEPARATOR0"
+#BSS_DISK_SHOW_TOTAL=1
+#BSS_DISK_NOTICE=75
+#BSS_DISK_WARN=90
+
+
+# The logins module shows the current active user sessions. It can display
+# the total number of sessions and/or the total number of distinct users with
+# sessions. The default alert levels were set with a typical web or DB server
+# in mind (where only a couple admin users would likely ever be connected).
+
+#BSS_LOGINS_SHOW_USERS=1
+#BSS_LOGINS_NOTICE_USERS=2
+#BSS_LOGINS_WARN_USERS=3
+
+#BSS_LOGINS_SHOW_SESSIONS=1
+#BSS_LOGINS_NOTICE_SESSIONS=4
+#BSS_LOGINS_WARN_SESSIONS=6
+
+
+# The processes module can break down the total running system processes
+# by which are effectively owned by a root user and those owned by
+# standard users. In order to display this break-down, BSS_PROCESSES_ROOTUSERS
+# must be set to a pipe delimited list of usernames that you wish to
+# count as "root".
+
+#BSS_PROCESSES_SHOW_TOTAL=0
+#BSS_PROCESSES_NOTICE_TOTAL=150
+#BSS_PROCESSES_WARN_TOTAL=200
+
+#BSS_PROCESSES_SHOW_USER=1
+#BSS_PROCESSES_NOTICE_USER=50
+#BSS_PROCESSES_WARN_USER=75
+
+#BSS_PROCESSES_SHOW_ROOT=1
+#BSS_PROCESSES_NOTICE_ROOT=100
+#BSS_PROCESSES_WARN_ROOT=125
+
+#BSS_PROCESSES_ROOTUSERS="root|nobody|daemon"
+
+
+# By default the load module uses the notice/warn levels indicated
+# below but multiplies those values by the total processing units in the
+# system. If you want to provide your own absolute values you should also
+# set BSS_LOAD_MULTIPLYCPU=0. Also note that the default alert levels for
+# each time segment (one/five/fifteen) are increasingly more sensitive.
+# This sliding alert scale allows you to easily ignore small momentary
+# spikes without missing important large or longer-term problems.
+
+#BSS_LOAD_PREFIX="LD$BSS_SEPARATOR0"
+
+#BSS_LOAD_SHOW_1=1
+#BSS_LOAD_NOTICE_1="1.50"
+#BSS_LOAD_WARN_1="2.00"
+
+#BSS_LOAD_SHOW_5=1
+#BSS_LOAD_NOTICE_5="1.00"
+#BSS_LOAD_WARN_5="1.50"
+
+#BSS_LOAD_SHOW_15=1
+#BSS_LOAD_NOTICE_15="0.75"
+#BSS_LOAD_WARN_15="1.00"
+
+#BSS_LOAD_MULTIPLYCPU=1

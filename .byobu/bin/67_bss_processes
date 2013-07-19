@@ -1,0 +1,71 @@
+#!/bin/sh -e
+#
+# bss_processes: bss module for user/root/total system process count
+#
+# Copyright (C) 2013 Kristoffer Smith
+#
+# Authors: Kristoffer Smith <http://theksmith.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+. "$BYOBU_CONFIG_DIR/bin/bss_config"
+. "$BYOBU_CONFIG_DIR/bin/bss_common"
+
+__bss_processes() {
+	local cmdout total user root
+
+	[ -n "$BSS_PROCESSES_SHOW_TOTAL" ] || BSS_PROCESSES_SHOW_TOTAL=0;
+	[ -n "$BSS_PROCESSES_SHOW_USER" ] || BSS_PROCESSES_SHOW_USER=1;
+	[ -n "$BSS_PROCESSES_SHOW_ROOT" ] || BSS_PROCESSES_SHOW_ROOT=1;
+
+	[ -n "$BSS_PROCESSES_NOTICE_TOTAL" ] || BSS_PROCESSES_NOTICE_TOTAL=150;
+	[ -n "$BSS_PROCESSES_WARN_TOTAL" ] || BSS_PROCESSES_WARN_TOTAL=200;
+
+	[ -n "$BSS_PROCESSES_NOTICE_USER" ] || BSS_PROCESSES_NOTICE_USER=50;
+	[ -n "$BSS_PROCESSES_WARN_USER" ] || BSS_PROCESSES_WARN_USER=75;
+
+	[ -n "$BSS_PROCESSES_NOTICE_ROOT" ] || BSS_PROCESSES_NOTICE_ROOT=75;
+	[ -n "$BSS_PROCESSES_WARN_ROOT" ] || BSS_PROCESSES_WARN_ROOT=125;
+
+	[ -n "$BSS_PROCESSES_ROOTUSERS" ] || BSS_PROCESSES_ROOTUSERS="root|nobody|daemon"
+
+	#the -3 is due to these ps and awk processes being included the list and the ps list header
+	cmdout=$(ps -eo euser | awk "{t++}; /$BSS_PROCESSES_ROOTUSERS/ {r++}; END {print t \" \" t-r-3 \" \" r}")
+	[ -n "$cmdout" ] || return;
+
+	total=$(echo "$cmdout" | awk '{print $1}')
+	user=$(echo "$cmdout" | awk '{print $2}')
+	root=$(echo "$cmdout" | awk '{print $3}')
+
+	if [ "$BSS_PROCESSES_SHOW_TOTAL" = "1" ]; then
+		bss_color_alerth "$total" "$BSS_PROCESSES_NOTICE_TOTAL" "$BSS_PROCESSES_WARN_TOTAL"
+		printf "$total&"
+		[ "$BSS_PROCESSES_SHOW_USER" = "1" -o "$BSS_PROCESSES_SHOW_ROOT" = "1" ] && printf "$BSS_SEPARATOR0"
+	fi
+
+	if [ "$BSS_PROCESSES_SHOW_USER" = "1" ]; then
+		bss_color_alerth "$user" "$BSS_PROCESSES_NOTICE_USER" "$BSS_PROCESSES_WARN_USER"
+		printf "$user&U"
+		[ "$BSS_PROCESSES_SHOW_ROOT" = "1" ] && printf "$BSS_SEPARATOR0"
+	fi
+
+	if [ "$BSS_PROCESSES_SHOW_ROOT" = "1" ]; then
+		bss_color_alerth "$root" "$BSS_PROCESSES_NOTICE_ROOT" "$BSS_PROCESSES_WARN_ROOT"
+		printf "$root&R"
+	fi
+
+	[ "$BSS_LAST" = "processes" ] || bss_color --
+}
+
+__bss_processes

@@ -1,0 +1,62 @@
+#!/bin/sh -e
+#
+# bss_cpu: bss module for cpu frequency and total processing unit count
+#
+# Copyright (C) 2013 Kristoffer Smith
+#
+# Authors: Kristoffer Smith <http://theksmith.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+. "$BYOBU_CONFIG_DIR/bin/bss_config"
+. "$BYOBU_CONFIG_DIR/bin/bss_common"
+
+#calcs sourced from the original byobu module
+__bss_cpu() {
+	local hz fpdiv freq cpus
+
+	[ -n "$BSS_CPU_SHOW_COUNT" ] || BSS_CPU_SHOW_COUNT=1
+	[ -n "$BSS_CPU_SHOW_FREQ" ] || BSS_CPU_SHOW_FREQ=1
+
+	if [ -r "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq" ]; then
+		read hz < /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
+		fpdiv $hz "1000000" 1 #1Ghz
+		freq="$_RET"
+	elif [ -r "/proc/cpuinfo" ]; then
+		if egrep -q -s -i -m 1 "^cpu MHz|^clock" /proc/cpuinfo; then
+			freq=$(egrep -i -m 1 "^cpu MHz|^clock" /proc/cpuinfo | awk -F"[:.]" '{ printf "%01.1f", $2 / 1000 }')
+		else
+			#if bogomips then scale frequency by number of processors
+			cpus=$(getconf _NPROCESSORS_ONLN 2>/dev/null || grep -ci "^processor" /proc/cpuinfo)
+			freq=$(egrep -i -m 1 "^bogomips" /proc/cpuinfo | awk -F"[:.]" '{ print $2 }')
+			freq=$(printf "%s %s" "$freq" "$cpus" | awk '{printf "%01.1f\n", $1/$2/1000}')
+		fi
+	elif hz=$(sysctl -n hw.cpufrequency 2>/dev/null); then
+		fpdiv $hz "1000000000" 1 #1Ghz
+		freq="$_RET"
+	fi
+	[ -n "$freq" ] || freq="?"
+
+	[ -n "$cpus" ] || cpus=$(bss_cpu_count)
+	[ -n "$cpus" ] || cpus="?"
+
+	bss_color static
+	[ "$BSS_CPU_SHOW_COUNT" = "1" ] && printf "$cpus@"
+	[ "$BSS_CPU_SHOW_FREQ" = "1" ] && printf "$freq$ICON_GHz"
+
+	[ "$BSS_LAST" = "cpu" ] || bss_color --
+}
+
+__bss_cpu
+

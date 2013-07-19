@@ -1,0 +1,2 @@
+tmux_left="83_bss_uptime"
+tmux_right="307_bss_cpu 19_bss_load 67_bss_processes 71_bss_logins 53_bss_ram 59_bss_swap 101_bss_disk 1_bss_clock"

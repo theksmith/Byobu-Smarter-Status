@@ -1,0 +1,49 @@
+#!/bin/sh -e
+#
+# bss_ram: bss module for available memory and current usage
+#
+# Copyright (C) 2013 Kristoffer Smith
+#
+# Authors: Kristoffer Smith <http://theksmith.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+. "$BYOBU_CONFIG_DIR/bin/bss_config"
+. "$BYOBU_CONFIG_DIR/bin/bss_common"
+
+__bss_ram() {
+	local cmdout total used
+
+	[ -n "$BSS_RAM_PREFIX" ] || BSS_RAM_PREFIX="RAM$BSS_SEPARATOR0"
+	[ "$BSS_RAM_PREFIX" = "0" ] && BSS_RAM_PREFIX=""
+
+	[ -n "$BSS_RAM_SHOW_TOTAL" ] || BSS_RAM_SHOW_TOTAL=1
+	[ -n "$BSS_RAM_NOTICE" ] || BSS_RAM_NOTICE=75
+	[ -n "$BSS_RAM_WARN" ] || BSS_RAM_WARN=90
+
+	cmdout=$(free -m | awk 'FNR==2{t=$2}; FNR==3{u=$3}; END {u=u/t*100; if(t>1000) printf "%1.1fG %1.0f\%", t/1024, u; else printf "%1iM %1.0f", t, u;}')
+	[ -n "$cmdout" ] || return;
+
+	total=$(echo "$cmdout" | awk '{print $1}')
+	used=$(echo "$cmdout" | awk '{print $2}')
+
+	bss_color_alerth "$used" "$BSS_RAM_NOTICE" "$BSS_RAM_WARN"
+	[ -n "$BSS_RAM_PREFIX" ] && printf "$BSS_RAM_PREFIX"
+	[ "$BSS_RAM_SHOW_TOTAL" = "1" ] && printf "$total$BSS_SEPARATOR0"
+	printf "$used%%"
+
+	[ "$BSS_LAST" = "ram" ] || bss_color --
+}
+
+__bss_ram

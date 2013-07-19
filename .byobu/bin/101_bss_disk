@@ -1,0 +1,49 @@
+#!/bin/sh -e
+#
+# bss_disk: bss module for filesystem size and current usage
+#
+# Copyright (C) 2013 Kristoffer Smith
+#
+# Authors: Kristoffer Smith <http://theksmith.com>
+#
+# This progDISK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This progDISK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this progDISK.  If not, see <http://www.gnu.org/licenses/>.
+
+
+. "$BYOBU_CONFIG_DIR/bin/bss_config"
+. "$BYOBU_CONFIG_DIR/bin/bss_common"
+
+__bss_disk() {
+	local cmdout total used
+
+	[ -n "$BSS_DISK_PREFIX" ] || BSS_DISK_PREFIX="DSK$BSS_SEPARATOR0"
+	[ "$BSS_DISK_PREFIX" = "0" ] && BSS_DISK_PREFIX=""
+
+	[ -n "$BSS_DISK_SHOW_TOTAL" ] || BSS_DISK_SHOW_TOTAL=1
+	[ -n "$BSS_DISK_NOTICE" ] || BSS_DISK_NOTICE=75
+	[ -n "$BSS_DISK_WARN" ] || BSS_DISK_WARN=90
+
+	cmdout=$(df --local -h | awk 'FNR==2{t=$2} FNR==2{u=$5} END {gsub("%","",u); printf "%s %s", t, u}')
+	[ -n "$cmdout" ] || return;
+
+	total=$(echo "$cmdout" | awk '{print $1}')
+	used=$(echo "$cmdout" | awk '{print $2}')
+
+	bss_color_alerth "$used" "$BSS_DISK_NOTICE" "$BSS_DISK_WARN"
+	[ -n "$BSS_DISK_PREFIX" ] && printf "$BSS_DISK_PREFIX"
+	[ "$BSS_DISK_SHOW_TOTAL" = "1" ] && printf "$total$BSS_SEPARATOR0"
+	printf "$used%%"
+
+	[ "$BSS_LAST" = "disk" ] || bss_color --
+}
+
+__bss_disk

@@ -1,0 +1,49 @@
+#!/bin/sh -e
+#
+# bss_swap: bss module for swap file size and current usage
+#
+# Copyright (C) 2013 Kristoffer Smith
+#
+# Authors: Kristoffer Smith <http://theksmith.com>
+#
+# This progSWAP is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This progSWAP is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this progSWAP.  If not, see <http://www.gnu.org/licenses/>.
+
+
+. "$BYOBU_CONFIG_DIR/bin/bss_config"
+. "$BYOBU_CONFIG_DIR/bin/bss_common"
+
+__bss_swap() {
+	local cmdout total used
+
+	[ -n "$BSS_SWAP_PREFIX" ] || BSS_SWAP_PREFIX="SWP$BSS_SEPARATOR0"
+	[ "$BSS_SWAP_PREFIX" = "0" ] && BSS_SWAP_PREFIX=""
+
+	[ -n "$BSS_SWAP_SHOW_TOTAL" ] || BSS_SWAP_SHOW_TOTAL=1
+	[ -n "$BSS_SWAP_NOTICE" ] || BSS_SWAP_NOTICE=50
+	[ -n "$BSS_SWAP_WARN" ] || BSS_SWAP_WARN=75
+
+	cmdout=$(free -m | awk 'FNR==4{t=$2}; FNR==4{u=$3}; END {u=u/t*100; if(t>1000) printf "%1.0fG %1.0f", t/1024, u; else printf "%1iM %1.0f", t, u;}')
+	[ -n "$cmdout" ] || return;
+
+	total=$(echo "$cmdout" | awk '{print $1}')
+	used=$(echo "$cmdout" | awk '{print $2}')
+
+	bss_color_alerth "$used" "$BSS_SWAP_NOTICE" "$BSS_SWAP_WARN"
+	[ -n "$BSS_SWAP_PREFIX" ] && printf "$BSS_SWAP_PREFIX"
+	[ "$BSS_SWAP_SHOW_TOTAL" = "1" ] && printf "$total$BSS_SEPARATOR0"
+	printf "$used%%"
+
+	[ "$BSS_LAST" = "swap" ] || bss_color --
+}
+
+__bss_swap
